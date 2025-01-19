@@ -26,14 +26,32 @@ class SgStrangeCalendar
   end
 
   def generate(vertical: false)
+    # 強調する日付がある場合、その日付に@をつけておく
+    mark_at_on_today if @today_year && @today_year == @year
+    # 各月に空文字を追加して、各月の日付を整形
+    square_calender = create_square_calender(vertical)
+    # 月のヘッダーを作成。横で表示なら年の桁数に合わせて左揃え
+    month_header = create_month_header(vertical)
+
+    # 曜日のヘッダーを作成。縦で表示なら年の桁数に合わせて左揃え
+    day_header = create_day_header(vertical)
+
+    # 曜日ヘッダーを先頭に挿入し、transposeして月ヘッダーを先頭に挿入。
+    calender_with_header = square_calender.unshift(day_header).transpose.unshift(month_header)
+    # 横表示なら再度transpose
+    calender_with_header = calender_with_header.transpose unless vertical
+    # 2次元配列を文字列に変換
+    create_calender_string(calender_with_header, vertical)
+  end
+
+  def mark_at_on_today
+    @calender[@today_month - 1][@today_day - 1] = "@#{@calender[@today_month - 1][@today_day - 1]}"
+  end
+
+  def create_square_calender(vertical)
     # 表示方法によって日にちの桁数を変更
     day_length = vertical ? 3 : 2
-    # 強調する日付がある場合、その日付に@をつけておく
-    if @today_year && @today_year == @year
-      @calender[@today_month - 1][@today_day - 1] = "@#{@calender[@today_month - 1][@today_day - 1]}"
-    end
-    # 各月に空文字を追加して、各月の日付を整形
-    formatted_calender = @calender.map.with_index do |month, index|
+    @calender.map.with_index do |month, index|
       # 各月の先頭に空文字を追加
       shifted_month = [''] * @first_day_of_month[index] + month
       # transpose用すべての月の長さを揃えるために空文字を追加
@@ -42,37 +60,38 @@ class SgStrangeCalendar
         day.to_s.rjust(day_length)
       end
     end
-    # 月のヘッダーを作成。横で表示なら年の桁数に合わせて左揃え
-    month_header = [@year.to_s] + MONTHS.map do |month|
+  end
+
+  def create_month_header(vertical)
+    [@year.to_s] + MONTHS.map do |month|
       if vertical
         month
       else
         month.ljust(@year.to_s.length)
       end
     end
+  end
 
-    # 曜日のヘッダーを作成。縦で表示なら年の桁数に合わせて左揃え
-    days_header = DAYS.map do |day|
+  def create_day_header(vertical)
+    DAYS.map do |day|
       if vertical
         day.ljust(@year.to_s.length)
       else
         day
       end
     end
+  end
 
-    # 曜日ヘッダーを先頭に挿入し、transposeして月ヘッダーを先頭に挿入。
-    output = formatted_calender.unshift(days_header).transpose.unshift(month_header)
-    # 横表示なら再度transpose
-    output = output.transpose unless vertical
-    # 各行の要素をスペースで結合し、各行を改行で結合
-    output = output.map do |sub_array|
+  def create_calender_string(calender_with_header, vertical)
+    # 各月の日付をスペースで区切り、各月を改行で連結
+    calender_string = calender_with_header.map do |sub_array|
       sub_array.join(' ').rstrip # 末尾のスペースを削除
     end.join("\n")
     if @today_year && @today_year == @year
       # 強調する日付の@を[]に変換
-      output = output.gsub(" @#{@today_day} ", vertical || @today_day < 10 ? " [#{@today_day}]" : "[#{@today_day}]") # 縦表示か1桁の場合は空白を追加
-                     .gsub(" @#{@today_day}", vertical || @today_day < 10 ? " [#{@today_day}]" : "[#{@today_day}]") # 各月の最後は文字の後ろにスペースがないので別途処理
+      calender_string = calender_string.gsub(" @#{@today_day} ", vertical || @today_day < 10 ? " [#{@today_day}]" : "[#{@today_day}]") # 縦表示か1桁の場合は空白を追加
+                                       .gsub(" @#{@today_day}", vertical || @today_day < 10 ? " [#{@today_day}]" : "[#{@today_day}]") # 各月の最後は文字の後ろにスペースがないので別途処理
     end
-    output
+    calender_string
   end
 end
