@@ -9,11 +9,7 @@ class SgStrangeCalendar
   def initialize(year, today = nil)
     # 引数をインスタンス変数に格納
     @year = year
-    if today
-      @today_year = today.year
-      @today_month = today.month
-      @today_day = today.day
-    end
+    @today_year, @today_month, @today_day = today.year, today.month, today.day if today
 
     # カレンダーの日付と各月の最初の曜日を格納
     @calendar = []
