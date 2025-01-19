@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 require 'date'
 class SgStrangeCalendar
-  MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+  MONTHS = %w[Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec].freeze
   COLUMN_LENGTH = 37
-  DAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].cycle.take(COLUMN_LENGTH)
+  DAYS = %w[Su Mo Tu We Th Fr Sa].cycle.take(COLUMN_LENGTH)
 
   def initialize(year, today = nil)
     # 引数をインスタンス変数に格納
@@ -26,7 +28,7 @@ class SgStrangeCalendar
   def generate(vertical: false)
     # 強調する日付がある場合、その日付に@をつけておく
     if @today_year && @today_year == @year
-      @calender[@today_month - 1][@today_day - 1] = '@' + @calender[@today_month - 1][@today_day - 1].to_s
+      @calender[@today_month - 1][@today_day - 1] = "@#{@calender[@today_month - 1][@today_day - 1]}"
     end
     # 各月に空文字を追加して、各月の日付を整形
     formatted_calender = @calender.map.with_index do |month, index|
@@ -42,7 +44,9 @@ class SgStrangeCalendar
     month_header = [@year.to_s] + MONTHS.map { |month| month.ljust(@year.to_s.length) }
 
     # 曜日ヘッダーを先頭に挿入。transposeして月ヘッダーを先頭に挿入。再度transposeし、各日付を空白で結合してから１つの文字列に改行コードで結合する
-    output = formatted_calender.unshift(DAYS).transpose.unshift(month_header).transpose.map { |sub_array| sub_array.join(' ').rstrip }.join("\n")
+    output = formatted_calender.unshift(DAYS).transpose.unshift(month_header).transpose.map do |sub_array|
+      sub_array.join(' ').rstrip
+    end.join("\n")
     if @today_year && @today_year == @year
       # 強調する日付の@を[]に変換
       output = output.gsub(" @#{@today_day} ", @today_day < 10 ? " [#{@today_day}]" : "[#{@today_day}]") # 1桁の場合は空白を追加
