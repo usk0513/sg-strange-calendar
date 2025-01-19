@@ -42,6 +42,8 @@ class SgStrangeCalendar
     create_calendar_string(calendar_with_header)
   end
 
+  private
+
   def mark_at_on_today
     @calendar[@today_month - 1][@today_day - 1] = "@#{@calendar[@today_month - 1][@today_day - 1]}"
   end
